@@ -1,0 +1,7 @@
+# Runtime-uploaded icons
+views/img/aspd_*
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
