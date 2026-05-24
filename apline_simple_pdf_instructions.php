@@ -252,17 +252,16 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
             $output .= $this->displayWarning($this->trans('The upload folder is not writable: %s. Icon uploads will fail until you fix its permissions (e.g. chmod 0775).', [$this->getUploadDir()], 'Modules.Aplinesimplepdfinstructions.Admin'));
         }
 
-        // Checkpoint 01 stub — admin form + "Manage buttons" link added in checkpoint 03+04.
-        // Attribution is the only mandatory part of the configuration page right now
-        // (workspace CLAUDE.md §3.2).
-        $output .= '<div class="panel">'
-            . '<h3><i class="icon-cogs"></i> '
-            . $this->trans('APLINE Simple PDF Instructions', [], 'Modules.Aplinesimplepdfinstructions.Admin')
-            . '</h3>'
-            . '<p>'
-            . $this->trans('Module installed. Full configuration (display location + button management) will be available once the admin form is wired up.', [], 'Modules.Aplinesimplepdfinstructions.Admin')
-            . '</p>'
-            . '</div>';
+        // Render the "Manage buttons" entry panel (configure.tpl). The
+        // ASPD_HOOK selector form lands in checkpoint 04 — for now the
+        // configuration page exposes only the button-list link plus the
+        // mandatory APLINE attribution.
+        $manageUrl = $this->context->link->getAdminLink(self::ADMIN_CONTROLLER);
+
+        $this->context->smarty->assign([
+            'aspd_manage_url' => $manageUrl,
+        ]);
+        $output .= $this->display(__FILE__, 'views/templates/admin/configure.tpl');
 
         return $output . $this->renderLikeBox() . $this->renderAplineFooter();
     }
