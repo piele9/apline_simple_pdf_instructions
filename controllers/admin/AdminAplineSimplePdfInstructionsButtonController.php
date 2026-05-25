@@ -15,7 +15,7 @@ if (!defined('_PS_VERSION_')) {
 
 require_once _PS_MODULE_DIR_ . 'apline_simple_pdf_instructions/classes/AplineSimplePdfInstructionsBtn.php';
 
-class AdminAplineSimplePdfInstructionsBtnController extends ModuleAdminController
+class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminController
 {
     const MAX_IMG_BYTES = 2097152; // 2 MB
     const MAX_STRING = 255;
