@@ -167,10 +167,16 @@ product context, regardless of the configured hook.
 
 ![Module configuration page](docs/config.png)
 
-**Buttons management** — drag & drop ordering, enable/disable, label
-source picker, remove-current-image switch:
+**Buttons management** — drag & drop ordering, enable/disable per
+button, color and label preview:
 
-![Buttons management list](docs/buttons.png)
+![Buttons management list](docs/rows.png)
+
+**Button edit form** — slot, icon (image or entity), label source
+(custom text vs attachment file name), color, *Remove current image*
+switch:
+
+![Button edit form](docs/edit-row.png)
 
 **Front-end** — the rendered buttons on the product page:
 
