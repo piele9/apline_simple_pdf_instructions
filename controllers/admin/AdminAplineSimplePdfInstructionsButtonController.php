@@ -13,9 +13,9 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'apline_simple_pdf_instructions/classes/AplineSimplePdfInstructionsButton.php';
+require_once _PS_MODULE_DIR_ . 'apline_simple_pdf_instructions/classes/AplineSimplePdfInstructionsBtn.php';
 
-class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminController
+class AdminAplineSimplePdfInstructionsBtnController extends ModuleAdminController
 {
     const MAX_IMG_BYTES = 2097152; // 2 MB
     const MAX_STRING = 255;
@@ -28,7 +28,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
     {
         $this->bootstrap = true;
         $this->table = 'aspd_button';
-        $this->className = 'AplineSimplePdfInstructionsButton';
+        $this->className = 'AplineSimplePdfInstructionsBtn';
         $this->identifier = 'id_aspd_button';
         $this->position_identifier = 'id_aspd_button';
         $this->lang = false;
@@ -177,6 +177,10 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
      */
     public function printLabel($value, $row)
     {
+        if (isset($row['label_source']) && $row['label_source'] === 'filename') {
+            return '<em class="text-muted">' . $this->trans('attachment file name', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</em>';
+        }
+
         $parts = [];
         if (!empty($value)) {
             $parts[] = htmlspecialchars((string) $value, ENT_QUOTES);
@@ -235,6 +239,17 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
                     'desc' => $this->trans('Optional. Allowed: JPG, PNG, WEBP. Max 2 MB. Leave empty to keep the current image or to use an HTML entity instead.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 ],
                 [
+                    'type' => 'switch',
+                    'label' => $this->trans('Remove current image', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'name' => 'remove_image',
+                    'is_bool' => true,
+                    'desc' => $this->trans('Turn on and save to delete the current icon image. Ignored when a new image is uploaded above.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'values' => [
+                        ['id' => 'remove_image_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Admin.Global')],
+                        ['id' => 'remove_image_off', 'value' => 0, 'label' => $this->trans('No', [], 'Admin.Global')],
+                    ],
+                ],
+                [
                     'type' => 'text',
                     'label' => $this->trans('Icon entity', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'icon_entity',
@@ -248,16 +263,29 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
                     'options' => ['query' => $iconPositionOptions, 'id' => 'id', 'name' => 'name'],
                 ],
                 [
+                    'type' => 'radio',
+                    'label' => $this->trans('Label source', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'name' => 'label_source',
+                    'required' => true,
+                    'class' => 't',
+                    'values' => [
+                        ['id' => 'label_source_own', 'value' => 'own', 'label' => $this->trans('Custom text (own label, optionally with product name)', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
+                        ['id' => 'label_source_filename', 'value' => 'filename', 'label' => $this->trans('Attachment file name (without extension)', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
+                    ],
+                    'desc' => $this->trans('"Attachment file name" uses the name set on the product attachment (the field "Name" in BO → Catalog → Files), or the storage file name if empty.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                ],
+                [
                     'type' => 'text',
                     'label' => $this->trans('Own label text', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'own_string',
-                    'desc' => $this->trans('Optional. Max 255 characters. Either this OR "Append product name" must be set — otherwise the button has no label.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Used only when "Label source" is "Custom text". Max 255 characters.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 ],
                 [
                     'type' => 'switch',
                     'label' => $this->trans('Append product name', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'append_product_name',
                     'is_bool' => true,
+                    'desc' => $this->trans('Used only when "Label source" is "Custom text". Either "Own label text" OR this switch must be set.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'values' => [
                         ['id' => 'append_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Admin.Global')],
                         ['id' => 'append_off', 'value' => 0, 'label' => $this->trans('No', [], 'Admin.Global')],
@@ -294,6 +322,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         if (!Tools::getValue($this->identifier)) {
             $this->fields_value = [
                 'icon_position' => 'left',
+                'label_source' => 'own',
                 'button_color' => '#dc3545',
                 'active' => 1,
                 'append_product_name' => 1,
@@ -311,7 +340,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         if ($isAdd || $isUpdate) {
             $existing = null;
             if ($isUpdate) {
-                $existing = new AplineSimplePdfInstructionsButton((int) Tools::getValue($this->identifier));
+                $existing = new AplineSimplePdfInstructionsBtn((int) Tools::getValue($this->identifier));
                 if (!Validate::isLoadedObject($existing)) {
                     $this->errors[] = $this->trans('The button you are trying to edit does not exist.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
 
@@ -336,7 +365,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
      * values into $_POST so the standard ObjectModel save picks them up.
      * On any failure, populate $this->errors and return false (no save happens).
      *
-     * @param AplineSimplePdfInstructionsButton|null $existing
+     * @param AplineSimplePdfInstructionsBtn|null $existing
      *
      * @return bool
      */
@@ -345,6 +374,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         $slot = (int) Tools::getValue('slot_position');
         $iconEntity = trim((string) Tools::getValue('icon_entity'));
         $iconPosition = (string) Tools::getValue('icon_position');
+        $labelSource = (string) Tools::getValue('label_source');
         $ownString = trim((string) Tools::getValue('own_string'));
         $appendProductName = (int) Tools::getValue('append_product_name') ? 1 : 0;
         $buttonColor = trim((string) Tools::getValue('button_color'));
@@ -357,8 +387,13 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         }
 
         // 2. Icon position must be one of the whitelisted values.
-        if (!in_array($iconPosition, AplineSimplePdfInstructionsButton::ICON_POSITIONS, true)) {
+        if (!in_array($iconPosition, AplineSimplePdfInstructionsBtn::ICON_POSITIONS, true)) {
             $this->errors[] = $this->trans('Icon position must be one of: none, left, right, both.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+        }
+
+        // 2b. Label source must be one of the whitelisted values.
+        if (!in_array($labelSource, AplineSimplePdfInstructionsBtn::LABEL_SOURCES, true)) {
+            $this->errors[] = $this->trans('Label source must be one of: own, filename.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
         // 3. Hex color #RRGGBB (reject anything else — even though the color
@@ -379,8 +414,10 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
             $this->errors[] = $this->trans('Icon entity must be a unicode hex code (e.g. 1F4C4) or an HTML entity (e.g. &#x1F4C4;).', [], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
-        // 6. Label XOR check: own_string OR append_product_name must be set.
-        if ($ownString === '' && $appendProductName === 0) {
+        // 6. Label XOR check: only meaningful when the admin chose "own" as
+        // the label source. With "filename" the attachment file name is used,
+        // so own_string / append_product_name are ignored at render time.
+        if ($labelSource === 'own' && $ownString === '' && $appendProductName === 0) {
             $this->errors[] = $this->trans('The button must have a label: set "Own label text" or enable "Append product name".', [], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
@@ -429,15 +466,19 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
             }
         }
 
+        // Explicit "remove current image" toggle wins over the silent "keep
+        // existing" fallback — but a fresh upload still trumps it.
+        $removeImage = (int) Tools::getValue('remove_image') === 1;
+
         // Resolve the effective icon image after this submission.
         $effectiveImage = $newImagePath;
-        if (null === $effectiveImage && $existing && !empty($existing->icon_image)) {
+        if (null === $effectiveImage && !$removeImage && $existing && !empty($existing->icon_image)) {
             $effectiveImage = $existing->icon_image;
         }
 
         // 8. Icon position vs source consistency check (only when validation
         // hasn't already failed on icon_position itself).
-        if (in_array($iconPosition, AplineSimplePdfInstructionsButton::ICON_POSITIONS, true)
+        if (in_array($iconPosition, AplineSimplePdfInstructionsBtn::ICON_POSITIONS, true)
             && $iconPosition !== 'none'
         ) {
             if (empty($effectiveImage) && $iconEntity === '') {
@@ -454,8 +495,12 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
             return false;
         }
 
-        // Remove the previous file when it is being replaced.
-        if ($newImagePath && $existing && !empty($existing->icon_image)) {
+        // Remove the previous file when it is being replaced OR when the
+        // admin ticked "Remove current image" without uploading a new one.
+        $shouldUnlinkOld = $existing
+            && !empty($existing->icon_image)
+            && ($newImagePath || $removeImage);
+        if ($shouldUnlinkOld) {
             $old = $this->module->getUploadDir() . basename($existing->icon_image);
             if (is_file($old)) {
                 @unlink($old);
@@ -467,6 +512,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         $_POST['icon_image'] = $effectiveImage ? $effectiveImage : '';
         $_POST['icon_entity'] = $iconEntity;
         $_POST['icon_position'] = $iconPosition;
+        $_POST['label_source'] = $labelSource;
         $_POST['own_string'] = $ownString;
         $_POST['append_product_name'] = $appendProductName;
         $_POST['button_color'] = $buttonColor;

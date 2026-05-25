@@ -1,0 +1,51 @@
+/*
+ * APLINE Simple PDF Instructions module for PrestaShop 9.
+ * @author APLINE Arkadiusz Pielechowski
+ */
+.apline-simple-pdf-instructions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.apline-simple-pdf-instructions .aspd-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
+.apline-simple-pdf-instructions .aspd-button:hover,
+.apline-simple-pdf-instructions .aspd-button:focus {
+  opacity: 0.85;
+  color: #fff;
+  text-decoration: none;
+}
+
+.apline-simple-pdf-instructions .aspd-icon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.apline-simple-pdf-instructions .aspd-icon img {
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: middle;
+  display: block;
+}
+
+.apline-simple-pdf-instructions .aspd-icon-entity {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.apline-simple-pdf-instructions .aspd-label {
+  font-size: 1rem;
+}

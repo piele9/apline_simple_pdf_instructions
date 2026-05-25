@@ -17,7 +17,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class AplineSimplePdfInstructionsButton extends ObjectModel
+class AplineSimplePdfInstructionsBtn extends ObjectModel
 {
     /** @var int slot index in ps_product_attachment (1-based) */
     public $slot_position;
@@ -27,6 +27,8 @@ class AplineSimplePdfInstructionsButton extends ObjectModel
     public $icon_entity;
     /** @var string icon position relative to the label: none|left|right|both */
     public $icon_position;
+    /** @var string source of the label text: own|filename */
+    public $label_source;
     /** @var string|null custom label text (255 chars max) */
     public $own_string;
     /** @var bool whether to append the product name to the label */
@@ -54,6 +56,7 @@ class AplineSimplePdfInstructionsButton extends ObjectModel
             'icon_image' => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml', 'size' => 255],
             'icon_entity' => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml', 'size' => 255],
             'icon_position' => ['type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'size' => 8, 'required' => true],
+            'label_source' => ['type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'size' => 8, 'required' => true],
             'own_string' => ['type' => self::TYPE_STRING, 'validate' => 'isCleanHtml', 'size' => 255],
             'append_product_name' => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
             'button_color' => ['type' => self::TYPE_STRING, 'validate' => 'isColor', 'size' => 7, 'required' => true],
@@ -72,6 +75,14 @@ class AplineSimplePdfInstructionsButton extends ObjectModel
      * @var string[]
      */
     const ICON_POSITIONS = ['none', 'left', 'right', 'both'];
+
+    /**
+     * Whitelist of valid `label_source` values. Enforced by the
+     * AdminController; documented here as the source of truth.
+     *
+     * @var string[]
+     */
+    const LABEL_SOURCES = ['own', 'filename'];
 
     /**
      * Active buttons ordered by position, for front rendering.

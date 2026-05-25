@@ -14,7 +14,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once __DIR__ . '/classes/AplineSimplePdfInstructionsButton.php';
+require_once __DIR__ . '/classes/AplineSimplePdfInstructionsBtn.php';
 
 use PrestaShop\PrestaShop\Core\Module\WidgetInterface;
 
@@ -125,6 +125,7 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
             `icon_image` VARCHAR(255) DEFAULT NULL,
             `icon_entity` VARCHAR(255) DEFAULT NULL,
             `icon_position` ENUM(\'none\', \'left\', \'right\', \'both\') NOT NULL DEFAULT \'left\',
+            `label_source` ENUM(\'own\', \'filename\') NOT NULL DEFAULT \'own\',
             `own_string` VARCHAR(255) DEFAULT NULL,
             `append_product_name` TINYINT(1) UNSIGNED NOT NULL DEFAULT 0,
             `button_color` VARCHAR(7) NOT NULL DEFAULT \'#dc3545\',
@@ -248,14 +249,21 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
     {
         $output = '';
 
+        if (Tools::isSubmit('submitAspdConfig')) {
+            $hook = (string) Tools::getValue(self::HOOK_KEY);
+
+            if (!array_key_exists($hook, self::getAvailableHooks())) {
+                $output .= $this->displayError($this->trans('Invalid display hook selected.', [], 'Modules.Aplinesimplepdfinstructions.Admin'));
+            } else {
+                Configuration::updateValue(self::HOOK_KEY, $hook);
+                $output .= $this->displayConfirmation($this->trans('Settings updated.', [], 'Modules.Aplinesimplepdfinstructions.Admin'));
+            }
+        }
+
         if (!$this->isUploadDirWritable()) {
             $output .= $this->displayWarning($this->trans('The upload folder is not writable: %s. Icon uploads will fail until you fix its permissions (e.g. chmod 0775).', [$this->getUploadDir()], 'Modules.Aplinesimplepdfinstructions.Admin'));
         }
 
-        // Render the "Manage buttons" entry panel (configure.tpl). The
-        // ASPD_HOOK selector form lands in checkpoint 04 — for now the
-        // configuration page exposes only the button-list link plus the
-        // mandatory APLINE attribution.
         $manageUrl = $this->context->link->getAdminLink(self::ADMIN_CONTROLLER);
 
         $this->context->smarty->assign([
@@ -263,7 +271,50 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
         ]);
         $output .= $this->display(__FILE__, 'views/templates/admin/configure.tpl');
 
-        return $output . $this->renderLikeBox() . $this->renderAplineFooter();
+        return $output . $this->renderConfigForm() . $this->renderLikeBox() . $this->renderAplineFooter();
+    }
+
+    /**
+     * @return string
+     */
+    private function renderConfigForm()
+    {
+        $hookOptions = [];
+        foreach (self::getAvailableHooks() as $hookName => $label) {
+            $hookOptions[] = ['id' => $hookName, 'name' => $label];
+        }
+
+        $fields_form = [
+            'form' => [
+                'legend' => [
+                    'title' => $this->trans('Display settings', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'icon' => 'icon-cogs',
+                ],
+                'input' => [
+                    [
+                        'type' => 'select',
+                        'label' => $this->trans('Display location', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                        'name' => self::HOOK_KEY,
+                        'options' => ['query' => $hookOptions, 'id' => 'id', 'name' => 'name'],
+                        'desc' => $this->trans('You can also display the buttons anywhere with {widget name=\'apline_simple_pdf_instructions\'}.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    ],
+                ],
+                'submit' => ['title' => $this->trans('Save', [], 'Admin.Actions')],
+            ],
+        ];
+
+        $helper = new HelperForm();
+        $helper->module = $this;
+        $helper->name_controller = $this->name;
+        $helper->identifier = $this->identifier;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
+        $helper->submit_action = 'submitAspdConfig';
+        $helper->fields_value = [
+            self::HOOK_KEY => Configuration::get(self::HOOK_KEY),
+        ];
+
+        return $helper->generateForm([$fields_form]);
     }
 
     /**
@@ -304,51 +355,61 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
 
     public function hookActionFrontControllerSetMedia()
     {
-        // Stub for checkpoint 01 — actual stylesheet registration arrives in checkpoint 04
-        // (along with views/css/front.css and the front-end render).
+        $this->context->controller->registerStylesheet(
+            'apline-simple-pdf-instructions',
+            'modules/' . $this->name . '/views/css/front.css'
+        );
     }
 
     public function hookDisplayProductAdditionalInfo($params)
     {
-        return $this->renderForHook('displayProductAdditionalInfo');
+        return $this->renderForHook('displayProductAdditionalInfo', $params);
     }
 
     public function hookDisplayLeftColumn($params)
     {
-        return $this->renderForHook('displayLeftColumn');
+        return $this->renderForHook('displayLeftColumn', $params);
     }
 
     public function hookDisplayRightColumn($params)
     {
-        return $this->renderForHook('displayRightColumn');
+        return $this->renderForHook('displayRightColumn', $params);
     }
 
     public function hookDisplayFooterProduct($params)
     {
-        return $this->renderForHook('displayFooterProduct');
+        return $this->renderForHook('displayFooterProduct', $params);
     }
 
     /**
      * Render the buttons block only on the hook selected in configuration.
      * Wrapped so any failure yields an empty block instead of a 500.
      *
-     * Stub for checkpoint 01 — always returns '' because there is no Smarty
-     * template yet. Real rendering arrives in checkpoint 04.
-     *
      * @param string $hookName
+     * @param array $params PrestaShop hook params (used to resolve the product)
      *
      * @return string
      */
-    private function renderForHook($hookName)
+    private function renderForHook($hookName, $params = [])
     {
         try {
             if (Configuration::get(self::HOOK_KEY) !== $hookName) {
                 return '';
             }
 
-            // Checkpoint 04 will populate variables and render
-            // views/templates/hook/buttons.tpl here.
-            return '';
+            $product = $this->resolveProduct($params);
+            if (!$product) {
+                return '';
+            }
+
+            $buttons = $this->buildButtonsForProduct($product);
+            if (!$buttons) {
+                return '';
+            }
+
+            $this->smarty->assign(['buttons' => $buttons]);
+
+            return $this->display(__FILE__, 'views/templates/hook/buttons.tpl');
         } catch (\Throwable $e) {
             PrestaShopLogger::addLog('apline_simple_pdf_instructions: ' . $e->getMessage(), 3);
 
@@ -359,9 +420,19 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
     public function renderWidget($hookName = null, array $configuration = [])
     {
         try {
-            // Checkpoint 04 will populate Smarty variables and fetch
-            // $this->templateFile here.
-            return '';
+            $product = $this->resolveProduct($configuration);
+            if (!$product) {
+                return '';
+            }
+
+            $buttons = $this->buildButtonsForProduct($product);
+            if (!$buttons) {
+                return '';
+            }
+
+            $this->smarty->assign(['buttons' => $buttons]);
+
+            return $this->fetch($this->templateFile);
         } catch (\Throwable $e) {
             PrestaShopLogger::addLog('apline_simple_pdf_instructions: ' . $e->getMessage(), 3);
 
@@ -371,8 +442,180 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
 
     public function getWidgetVariables($hookName = null, array $configuration = [])
     {
-        // Checkpoint 04 will return ['buttons' => [...]] here based on the
-        // current product context.
-        return [];
+        try {
+            $product = $this->resolveProduct($configuration);
+            if (!$product) {
+                return ['buttons' => []];
+            }
+
+            return ['buttons' => $this->buildButtonsForProduct($product)];
+        } catch (\Throwable $e) {
+            return ['buttons' => []];
+        }
+    }
+
+    /**
+     * Try to resolve a Product object from the hook/widget params or the
+     * front controller context. Returns null if we are not on a product page.
+     *
+     * @param array $params
+     *
+     * @return Product|object|null
+     */
+    private function resolveProduct(array $params)
+    {
+        if (isset($params['product']) && is_object($params['product'])) {
+            return $params['product'];
+        }
+        if (isset($params['product']) && is_array($params['product']) && !empty($params['product']['id_product'])) {
+            return new Product((int) $params['product']['id_product'], false, (int) $this->context->language->id);
+        }
+        if (isset($params['id_product'])) {
+            return new Product((int) $params['id_product'], false, (int) $this->context->language->id);
+        }
+
+        $controller = isset($this->context->controller) ? $this->context->controller : null;
+        if ($controller && property_exists($controller, 'product') && is_object($controller->product)) {
+            return $controller->product;
+        }
+        if ($controller && method_exists($controller, 'getProduct')) {
+            try {
+                $product = $controller->getProduct();
+                if (is_object($product)) {
+                    return $product;
+                }
+            } catch (\Throwable $e) {
+                // fall through
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Build the per-product list of buttons to render. Each active button
+     * is matched against the product attachment at `slot_position`
+     * (1-indexed). Buttons without a matching attachment are skipped
+     * silently — graceful skip is a core requirement (no empty buttons,
+     * no errors).
+     *
+     * @param Product|object $product
+     *
+     * @return array[] each entry: [url, color, label, icon_left, icon_right]
+     */
+    private function buildButtonsForProduct($product)
+    {
+        $idProduct = (int) (isset($product->id) ? $product->id : 0);
+        if (!$idProduct) {
+            return [];
+        }
+
+        $idLang = (int) $this->context->language->id;
+
+        // Read attachments straight from the DB to avoid PS API drift between
+        // 8.x and 9.x. ORDER BY id_attachment ASC gives a stable 1-based slot
+        // mapping: attachments[0] = slot 1, attachments[1] = slot 2, ...
+        // attachment_lang.name is the human-friendly title set by the admin —
+        // used as the label when label_source = 'filename'.
+        $sql = 'SELECT a.id_attachment, a.file, al.name AS attachment_name
+            FROM `' . _DB_PREFIX_ . 'product_attachment` pa
+            INNER JOIN `' . _DB_PREFIX_ . 'attachment` a ON a.id_attachment = pa.id_attachment
+            LEFT JOIN `' . _DB_PREFIX_ . 'attachment_lang` al
+                ON al.id_attachment = a.id_attachment AND al.id_lang = ' . $idLang . '
+            WHERE pa.id_product = ' . $idProduct . '
+            ORDER BY a.id_attachment ASC';
+
+        $attachments = Db::getInstance()->executeS($sql);
+        if (!is_array($attachments)) {
+            $attachments = [];
+        }
+
+        if (!$attachments) {
+            return [];
+        }
+
+        $productName = '';
+        if (isset($product->name)) {
+            $productName = is_array($product->name)
+                ? (isset($product->name[$idLang]) ? (string) $product->name[$idLang] : (string) reset($product->name))
+                : (string) $product->name;
+        }
+
+        $buttons = [];
+        foreach (AplineSimplePdfInstructionsBtn::getActiveButtons() as $btn) {
+            $slot = (int) $btn['slot_position'];
+            if ($slot < 1 || !isset($attachments[$slot - 1])) {
+                continue;
+            }
+
+            $attachment = $attachments[$slot - 1];
+            $idAttachment = (int) $attachment['id_attachment'];
+
+            // PrestaShop's attachment controller serves the file by id.
+            $url = $this->context->link->getPageLink(
+                'attachment',
+                null,
+                $idLang,
+                ['id_attachment' => $idAttachment]
+            );
+
+            // Compose label from the configured source:
+            //   'filename' → attachment_lang.name (admin-set title); fallback
+            //                to the storage file name without extension.
+            //   'own'      → custom text, optionally with product name appended.
+            $labelSource = isset($btn['label_source']) ? (string) $btn['label_source'] : 'own';
+
+            if ($labelSource === 'filename') {
+                $label = isset($attachment['attachment_name']) ? trim((string) $attachment['attachment_name']) : '';
+                if ($label === '' && isset($attachment['file'])) {
+                    $label = pathinfo((string) $attachment['file'], PATHINFO_FILENAME);
+                }
+            } else {
+                $own = isset($btn['own_string']) ? (string) $btn['own_string'] : '';
+                $appendName = !empty($btn['append_product_name']);
+
+                if ($own !== '' && $appendName) {
+                    $label = $own . ' ' . $productName;
+                } elseif ($own !== '') {
+                    $label = $own;
+                } elseif ($appendName) {
+                    $label = $productName;
+                } else {
+                    $label = '';
+                }
+            }
+
+            // Icon renders as either <img src=image> or an entity. If both
+            // fields are populated, the image wins (consistent with the
+            // admin list preview).
+            $iconRendered = '';
+            if (!empty($btn['icon_image'])) {
+                $iconRendered = '<img src="' . htmlspecialchars((string) $btn['icon_image'], ENT_QUOTES) . '" alt="">';
+            } elseif (!empty($btn['icon_entity'])) {
+                $iconRendered = self::normalizeIcon((string) $btn['icon_entity']);
+            }
+
+            $position = isset($btn['icon_position']) ? (string) $btn['icon_position'] : 'none';
+            $iconLeft = '';
+            $iconRight = '';
+            if ($iconRendered !== '') {
+                if ($position === 'left' || $position === 'both') {
+                    $iconLeft = $iconRendered;
+                }
+                if ($position === 'right' || $position === 'both') {
+                    $iconRight = $iconRendered;
+                }
+            }
+
+            $buttons[] = [
+                'url' => $url,
+                'color' => isset($btn['button_color']) ? (string) $btn['button_color'] : '#dc3545',
+                'label' => $label,
+                'icon_left' => $iconLeft,
+                'icon_right' => $iconRight,
+            ];
+        }
+
+        return $buttons;
     }
 }
