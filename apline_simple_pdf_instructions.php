@@ -46,7 +46,7 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
     {
         $this->name = 'apline_simple_pdf_instructions';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'APLINE Arkadiusz Pielechowski';
         $this->need_instance = false;
         $this->bootstrap = true;
