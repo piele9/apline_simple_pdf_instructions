@@ -43,38 +43,38 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
                 'class' => 'fixed-width-xs',
             ],
             'slot_position' => [
-                'title' => $this->trans('Slot', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                'title' => $this->trans('Pozycja załącznika', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 'align' => 'center',
                 'class' => 'fixed-width-xs',
                 'callback' => 'printSlot',
             ],
             'icon_image' => [
-                'title' => $this->trans('Icon', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                'title' => $this->trans('Ikona', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 'align' => 'center',
                 'callback' => 'printIcon',
                 'orderby' => false,
                 'search' => false,
             ],
             'own_string' => [
-                'title' => $this->trans('Label', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                'title' => $this->trans('Etykieta', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 'callback' => 'printLabel',
             ],
             'button_color' => [
-                'title' => $this->trans('Color', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                'title' => $this->trans('Kolor', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 'align' => 'center',
                 'callback' => 'printColor',
                 'orderby' => false,
                 'search' => false,
             ],
             'active' => [
-                'title' => $this->trans('Displayed', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                'title' => $this->trans('Widoczny', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 'align' => 'center',
                 'active' => 'active',
                 'type' => 'bool',
                 'orderby' => false,
             ],
             'position' => [
-                'title' => $this->trans('Position', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                'title' => $this->trans('Pozycja', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 'align' => 'center',
                 'position' => 'position',
                 'search' => false,
@@ -88,8 +88,8 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         $this->addRowAction('delete');
         $this->bulk_actions = [
             'delete' => [
-                'text' => $this->trans('Delete selected', [], 'Admin.Actions'),
-                'confirm' => $this->trans('Delete selected buttons?', [], 'Admin.Notifications.Warning'),
+                'text' => $this->trans('Usuń zaznaczone', [], 'Admin.Actions'),
+                'confirm' => $this->trans('Usunąć zaznaczone przyciski?', [], 'Admin.Notifications.Warning'),
             ],
         ];
     }
@@ -119,7 +119,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
 
         $this->page_header_toolbar_btn['back_to_config'] = [
             'href' => $this->getConfigUrl(),
-            'desc' => $this->trans('Back to configuration', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+            'desc' => $this->trans('Wróć do konfiguracji', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
             'icon' => 'process-icon-back',
         ];
     }
@@ -132,7 +132,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         $back = '<div style="margin:10px 0;"><a class="btn btn-default" href="'
             . htmlspecialchars($this->getConfigUrl(), ENT_QUOTES)
             . '"><i class="icon-chevron-left"></i> '
-            . $this->trans('Back to configuration', [], 'Modules.Aplinesimplepdfinstructions.Admin')
+            . $this->trans('Wróć do konfiguracji', [], 'Modules.Aplinesimplepdfinstructions.Admin')
             . '</a></div>';
 
         $credit = method_exists($this->module, 'renderAplineFooter')
@@ -178,7 +178,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
     public function printLabel($value, $row)
     {
         if (isset($row['label_source']) && $row['label_source'] === 'filename') {
-            return '<em class="text-muted">' . $this->trans('attachment file name', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</em>';
+            return '<em class="text-muted">' . $this->trans('nazwa pliku załącznika', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</em>';
         }
 
         $parts = [];
@@ -186,7 +186,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
             $parts[] = htmlspecialchars((string) $value, ENT_QUOTES);
         }
         if (!empty($row['append_product_name'])) {
-            $parts[] = '<em class="text-muted">+ ' . $this->trans('product name', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</em>';
+            $parts[] = '<em class="text-muted">+ ' . $this->trans('nazwa produktu', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</em>';
         }
 
         return $parts ? implode(' ', $parts) : '<span class="text-muted">&mdash;</span>';
@@ -205,6 +205,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
 
     public function renderForm()
     {
+        $this->addCSS($this->module->getPathUri() . 'views/css/admin.css');
         // Build a slot dropdown 1..10.
         $slotOptions = [];
         for ($i = self::MIN_SLOT; $i <= self::MAX_SLOT; ++$i) {
@@ -212,104 +213,104 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         }
 
         $iconPositionOptions = [
-            ['id' => 'none', 'name' => $this->trans('None', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
-            ['id' => 'left', 'name' => $this->trans('Left', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
-            ['id' => 'right', 'name' => $this->trans('Right', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
-            ['id' => 'both', 'name' => $this->trans('Both sides', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
+            ['id' => 'none', 'name' => $this->trans('Brak', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
+            ['id' => 'left', 'name' => $this->trans('Po lewej', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
+            ['id' => 'right', 'name' => $this->trans('Po prawej', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
+            ['id' => 'both', 'name' => $this->trans('Po obu stronach', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
         ];
 
         $this->fields_form = [
             'legend' => [
-                'title' => $this->trans('PDF button', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                'title' => $this->trans('Przycisk PDF', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 'icon' => 'icon-file-pdf-o',
             ],
             'input' => [
                 [
                     'type' => 'select',
-                    'label' => $this->trans('Attachment slot', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Pozycja załącznika', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'slot_position',
                     'required' => true,
                     'options' => ['query' => $slotOptions, 'id' => 'id', 'name' => 'name'],
-                    'desc' => $this->trans('Which product attachment this button represents (1 = first attachment, 2 = second, etc.). The same convention should be used across all your products.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Numer załącznika produktu (1 = pierwszy, 2 = drugi itd.). Używaj tej samej kolejności załączników we wszystkich produktach.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 ],
                 [
                     'type' => 'file',
-                    'label' => $this->trans('Icon image', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Obraz ikony', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'image_file',
-                    'desc' => $this->trans('Optional. Allowed: JPG, PNG, WEBP. Max 2 MB. Leave empty to keep the current image or to use an HTML entity instead.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Opcjonalny. Formaty: JPG, PNG, WEBP. Maks. 2 MB. Pozostaw puste, aby zachować obraz lub użyć encji HTML.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 ],
                 [
                     'type' => 'switch',
-                    'label' => $this->trans('Remove current image', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Usuń obecny obraz', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'remove_image',
                     'is_bool' => true,
-                    'desc' => $this->trans('Turn on and save to delete the current icon image. Ignored when a new image is uploaded above.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Włącz i zapisz, aby usunąć obecną ikonę. Opcja jest pomijana, jeśli przesyłasz nowy obraz powyżej.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'values' => [
-                        ['id' => 'remove_image_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Admin.Global')],
-                        ['id' => 'remove_image_off', 'value' => 0, 'label' => $this->trans('No', [], 'Admin.Global')],
+                        ['id' => 'remove_image_on', 'value' => 1, 'label' => $this->trans('Tak', [], 'Admin.Global')],
+                        ['id' => 'remove_image_off', 'value' => 0, 'label' => $this->trans('Nie', [], 'Admin.Global')],
                     ],
                 ],
                 [
                     'type' => 'text',
-                    'label' => $this->trans('Icon entity', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Encja ikony', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'icon_entity',
-                    'desc' => $this->trans('Optional alternative to an icon image: a unicode hex code (e.g. 1F4C4) or an HTML entity (e.g. &#x1F4C4;). Used when no icon image is set.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Alternatywa dla obrazu: szesnastkowy kod Unicode (np. 1F4C4) lub encja HTML (np. &#x1F4C4;). Używana, jeśli nie ma obrazu ikony.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 ],
                 [
                     'type' => 'select',
-                    'label' => $this->trans('Icon position', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Położenie ikony', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'icon_position',
                     'required' => true,
                     'options' => ['query' => $iconPositionOptions, 'id' => 'id', 'name' => 'name'],
                 ],
                 [
                     'type' => 'radio',
-                    'label' => $this->trans('Label source', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Źródło etykiety', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'label_source',
                     'required' => true,
                     'class' => 't',
                     'values' => [
-                        ['id' => 'label_source_own', 'value' => 'own', 'label' => $this->trans('Custom text (own label, optionally with product name)', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
-                        ['id' => 'label_source_filename', 'value' => 'filename', 'label' => $this->trans('Attachment file name (without extension)', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
+                        ['id' => 'label_source_own', 'value' => 'own', 'label' => $this->trans('Własny tekst (opcjonalnie z nazwą produktu)', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
+                        ['id' => 'label_source_filename', 'value' => 'filename', 'label' => $this->trans('Nazwa pliku załącznika (bez rozszerzenia)', [], 'Modules.Aplinesimplepdfinstructions.Admin')],
                     ],
-                    'desc' => $this->trans('"Attachment file name" uses the name set on the product attachment (the field "Name" in BO → Catalog → Files), or the storage file name if empty.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Nazwa pliku załącznika korzysta z pola Nazwa załącznika w panelu (Katalog → Pliki). Jeśli puste, używa nazwy pliku zapisanej na dysku.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 ],
                 [
                     'type' => 'text',
-                    'label' => $this->trans('Own label text', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Własny tekst etykiety', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'own_string',
-                    'desc' => $this->trans('Used only when "Label source" is "Custom text". Max 255 characters.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Używany tylko przy źródle Własny tekst. Maks. 255 znaków.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 ],
                 [
                     'type' => 'switch',
-                    'label' => $this->trans('Append product name', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Dodaj nazwę produktu', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'append_product_name',
                     'is_bool' => true,
-                    'desc' => $this->trans('Used only when "Label source" is "Custom text". Either "Own label text" OR this switch must be set.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Używane tylko przy źródle Własny tekst. Wpisz własny tekst etykiety lub włącz tę opcję.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'values' => [
-                        ['id' => 'append_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Admin.Global')],
-                        ['id' => 'append_off', 'value' => 0, 'label' => $this->trans('No', [], 'Admin.Global')],
+                        ['id' => 'append_on', 'value' => 1, 'label' => $this->trans('Tak', [], 'Admin.Global')],
+                        ['id' => 'append_off', 'value' => 0, 'label' => $this->trans('Nie', [], 'Admin.Global')],
                     ],
                 ],
                 [
                     'type' => 'color',
-                    'label' => $this->trans('Button color', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Kolor przycisku', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'button_color',
                     'required' => true,
-                    'desc' => $this->trans('Background color of the button (hex format #RRGGBB).', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'desc' => $this->trans('Kolor tła przycisku w formacie szesnastkowym #RRGGBB.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                 ],
                 [
                     'type' => 'switch',
-                    'label' => $this->trans('Displayed', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'label' => $this->trans('Widoczny', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'name' => 'active',
                     'is_bool' => true,
                     'values' => [
-                        ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Yes', [], 'Admin.Global')],
-                        ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('No', [], 'Admin.Global')],
+                        ['id' => 'active_on', 'value' => 1, 'label' => $this->trans('Tak', [], 'Admin.Global')],
+                        ['id' => 'active_off', 'value' => 0, 'label' => $this->trans('Nie', [], 'Admin.Global')],
                     ],
                 ],
             ],
-            'submit' => ['title' => $this->trans('Save', [], 'Admin.Actions')],
+            'submit' => ['class' => 'btn btn-primary btn-lg apline-btn-duzy pull-right', 'title' => $this->trans('Zapisz', [], 'Admin.Actions')],
         ];
 
         // Preview of the current icon image when editing.
@@ -342,7 +343,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
             if ($isUpdate) {
                 $existing = new AplineSimplePdfInstructionsBtn((int) Tools::getValue($this->identifier));
                 if (!Validate::isLoadedObject($existing)) {
-                    $this->errors[] = $this->trans('The button you are trying to edit does not exist.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+                    $this->errors[] = $this->trans('Przycisk, który próbujesz edytować, nie istnieje.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
 
                     return false;
                 }
@@ -383,42 +384,42 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
         // 1. Slot range 1..10 (reject anything else — UI also constrains, but
         // POST can be tampered with).
         if ($slot < self::MIN_SLOT || $slot > self::MAX_SLOT) {
-            $this->errors[] = $this->trans('Slot must be between %d and %d.', [self::MIN_SLOT, self::MAX_SLOT], 'Modules.Aplinesimplepdfinstructions.Admin');
+            $this->errors[] = $this->trans('Pozycja załącznika musi wynosić od %d do %d.', [self::MIN_SLOT, self::MAX_SLOT], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
         // 2. Icon position must be one of the whitelisted values.
         if (!in_array($iconPosition, AplineSimplePdfInstructionsBtn::ICON_POSITIONS, true)) {
-            $this->errors[] = $this->trans('Icon position must be one of: none, left, right, both.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+            $this->errors[] = $this->trans('Położenie ikony musi być jednym z: Brak, Po lewej, Po prawej, Po obu stronach.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
         // 2b. Label source must be one of the whitelisted values.
         if (!in_array($labelSource, AplineSimplePdfInstructionsBtn::LABEL_SOURCES, true)) {
-            $this->errors[] = $this->trans('Label source must be one of: own, filename.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+            $this->errors[] = $this->trans('Wybierz źródło etykiety: Własny tekst lub Nazwa pliku załącznika.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
         // 3. Hex color #RRGGBB (reject anything else — even though the color
         // picker emits hex, manual POST can submit garbage).
         if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $buttonColor)) {
-            $this->errors[] = $this->trans('Button color must be a hex code in the form #RRGGBB.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+            $this->errors[] = $this->trans('Kolor przycisku musi mieć format #RRGGBB.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
         // 4. Max length 255 (reject, never truncate).
-        foreach (['Own label' => $ownString, 'Icon entity' => $iconEntity] as $label => $value) {
+        foreach (['Własna etykieta' => $ownString, 'Encja ikony' => $iconEntity] as $label => $value) {
             if (mb_strlen($value) > self::MAX_STRING) {
-                $this->errors[] = $this->trans('The field "%s" exceeds the maximum length of 255 characters.', [$label], 'Modules.Aplinesimplepdfinstructions.Admin');
+                $this->errors[] = $this->trans('Pole "%s" przekracza limit 255 znaków.', [$label], 'Modules.Aplinesimplepdfinstructions.Admin');
             }
         }
 
         // 5. Icon entity format: unicode hex or HTML entity.
         if ($iconEntity !== '' && !preg_match('/^(&#x?[0-9A-Fa-f]+;|&[a-zA-Z]+;|[0-9A-Fa-f]{1,6})$/', $iconEntity)) {
-            $this->errors[] = $this->trans('Icon entity must be a unicode hex code (e.g. 1F4C4) or an HTML entity (e.g. &#x1F4C4;).', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+            $this->errors[] = $this->trans('Ikona musi być szesnastkowym kodem Unicode (np. 1F4C4) lub encją HTML (np. &#x1F4C4;).', [], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
         // 6. Label XOR check: only meaningful when the admin chose "own" as
         // the label source. With "filename" the attachment file name is used,
         // so own_string / append_product_name are ignored at render time.
         if ($labelSource === 'own' && $ownString === '' && $appendProductName === 0) {
-            $this->errors[] = $this->trans('The button must have a label: set "Own label text" or enable "Append product name".', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+            $this->errors[] = $this->trans('Przycisk wymaga etykiety: wpisz własny tekst lub włącz opcję Dodaj nazwę produktu.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
         }
 
         // 7. Image upload validation (only when a file was actually sent).
@@ -431,18 +432,18 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
             $file = $_FILES['image_file'];
 
             if ($file['error'] !== UPLOAD_ERR_OK) {
-                $this->errors[] = $this->trans('The icon upload failed. Please try again.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+                $this->errors[] = $this->trans('Nie udało się przesłać ikony. Spróbuj ponownie.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
             } else {
                 $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
                 if (!in_array($ext, self::ALLOWED_EXT, true)) {
-                    $this->errors[] = $this->trans('Invalid icon format. Allowed formats: JPG, PNG, WEBP.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+                    $this->errors[] = $this->trans('Nieprawidłowy format ikony. Dozwolone: JPG, PNG, WEBP.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
                 } elseif ((int) $file['size'] > self::MAX_IMG_BYTES) {
-                    $this->errors[] = $this->trans('The icon is too large. Maximum size is 2 MB.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+                    $this->errors[] = $this->trans('Ikona jest zbyt duża. Maksymalny rozmiar to 2 MB.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
                 } else {
                     // Inspect real content, not just the extension: blocks an
                     // executable payload renamed with an image extension
-                    // (workspace CLAUDE.md §3.3).
+                    // .
                     $info = @getimagesize($file['tmp_name']);
                     $realMime = is_array($info) && isset($info['mime']) ? $info['mime'] : '';
                     $isRealImage = class_exists('ImageManager')
@@ -450,13 +451,13 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
                         : in_array($realMime, self::ALLOWED_MIME, true);
 
                     if (!$info || !in_array($realMime, self::ALLOWED_MIME, true) || !$isRealImage) {
-                        $this->errors[] = $this->trans('The uploaded file is not a valid image.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+                        $this->errors[] = $this->trans('Przesłany plik nie jest poprawnym obrazem.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
                     } else {
                         $fileName = 'aspd_' . uniqid('', true) . '.' . $ext;
                         $dest = $this->module->getUploadDir() . $fileName;
 
                         if (!@move_uploaded_file($file['tmp_name'], $dest)) {
-                            $this->errors[] = $this->trans('Could not save the uploaded icon. Check folder permissions.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+                            $this->errors[] = $this->trans('Nie udało się zapisać ikony. Sprawdź uprawnienia katalogu.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
                         } else {
                             @chmod($dest, 0644);
                             $newImagePath = __PS_BASE_URI__ . 'modules/apline_simple_pdf_instructions/views/img/' . $fileName;
@@ -482,7 +483,7 @@ class AdminAplineSimplePdfInstructionsButtonController extends ModuleAdminContro
             && $iconPosition !== 'none'
         ) {
             if (empty($effectiveImage) && $iconEntity === '') {
-                $this->errors[] = $this->trans('Icon position is set to "%s" but no icon image or icon entity was provided.', [$iconPosition], 'Modules.Aplinesimplepdfinstructions.Admin');
+                $this->errors[] = $this->trans('Wybrano położenie ikony "%s", ale nie podano obrazu ani encji ikony.', [['none' => 'Brak', 'left' => 'Po lewej', 'right' => 'Po prawej', 'both' => 'Po obu stronach'][$iconPosition] ?? $iconPosition], 'Modules.Aplinesimplepdfinstructions.Admin');
             }
         }
 

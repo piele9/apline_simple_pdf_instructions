@@ -87,7 +87,7 @@ class AplineSimplePdfInstructionsBtn extends ObjectModel
     /**
      * Active buttons ordered by position, for front rendering.
      * Guarded so a missing or corrupted table never breaks the shop front
-     * (workspace CLAUDE.md §3.1 crash-safety).
+     * .
      *
      * @return array
      */

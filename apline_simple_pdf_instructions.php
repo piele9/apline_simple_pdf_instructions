@@ -22,6 +22,9 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
 {
     const HOOK_KEY = 'ASPD_HOOK';
 
+    /** Hook registered by a fresh install / used to repair a broken one. Must stay a key of getAvailableHooks(). */
+    const DEFAULT_HOOK = 'displayProductAdditionalInfo';
+
     const ADMIN_CONTROLLER = 'AdminAplineSimplePdfInstructionsButton';
 
     /** @var string */
@@ -35,10 +38,10 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
     public static function getAvailableHooks()
     {
         return [
-            'displayProductAdditionalInfo' => 'Product page (reassurance area)',
-            'displayLeftColumn' => 'Left column',
-            'displayRightColumn' => 'Right column',
-            'displayFooterProduct' => 'Product page footer',
+            'displayProductAdditionalInfo' => 'Strona produktu (blok zaufania)',
+            'displayLeftColumn' => 'Lewa kolumna',
+            'displayRightColumn' => 'Prawa kolumna',
+            'displayFooterProduct' => 'Stopka strony produktu',
         ];
     }
 
@@ -46,16 +49,16 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
     {
         $this->name = 'apline_simple_pdf_instructions';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.1';
+        $this->version = '1.1.0';
         $this->author = 'APLINE Arkadiusz Pielechowski';
         $this->need_instance = false;
         $this->bootstrap = true;
 
         parent::__construct();
 
-        $this->displayName = $this->trans('APLINE Simple PDF Instructions for PrestaShop 9', [], 'Modules.Aplinesimplepdfinstructions.Admin');
-        $this->description = $this->trans('Configurable PDF-download buttons on the product page, each mapped to a product-attachment slot.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
-        $this->confirmUninstall = $this->trans('Are you sure you want to uninstall this module? All button definitions will be deleted.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+        $this->displayName = $this->trans('APLINE — instrukcje PDF dla PrestaShop 9', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+        $this->description = $this->trans('Przyciski pobierania PDF na stronie produktu, przypisane do pozycji załączników produktu.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+        $this->confirmUninstall = $this->trans('Czy chcesz odinstalować moduł? Wszystkie definicje przycisków zostaną usunięte.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
 
         $this->ps_versions_compliancy = ['min' => '9.0', 'max' => _PS_VERSION_];
     }
@@ -91,7 +94,7 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
         ) {
             // Roll back to a clean state so the shop is never left half-installed.
             $this->uninstall();
-            $this->_errors[] = $this->trans('Installation failed and was rolled back. Please check folder permissions and try again.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
+            $this->_errors[] = $this->trans('Instalacja nie powiodła się i została wycofana. Sprawdź uprawnienia katalogów i spróbuj ponownie.', [], 'Modules.Aplinesimplepdfinstructions.Admin');
 
             return false;
         }
@@ -146,17 +149,51 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
      */
     private function installConfiguration()
     {
-        return Configuration::updateValue(self::HOOK_KEY, 'displayProductAdditionalInfo');
+        return Configuration::updateValue(self::HOOK_KEY, self::DEFAULT_HOOK);
     }
 
     /**
+     * Registers only the hook selected in configuration (installConfiguration()
+     * runs first, so Configuration::get(self::HOOK_KEY) is already the default).
+     * A previous version of this method registered every hook from
+     * getAvailableHooks() regardless of the configured one, which could leave
+     * the module rendering nothing at all if the two ever fell out of sync
+     * (see switchHook() and upgrade/upgrade-1.0.2.php for the repair path).
+     *
      * @return bool
      */
     private function installHooks()
     {
         $ok = $this->registerHook('actionFrontControllerSetMedia');
-        foreach (array_keys(self::getAvailableHooks()) as $hook) {
-            $ok = $ok && $this->registerHook($hook);
+        $ok = $ok && $this->registerHook((string) Configuration::get(self::HOOK_KEY));
+
+        return $ok;
+    }
+
+    /**
+     * Move the module's display hook registration from $oldHook to $newHook,
+     * so the actual `ps_hook_module` registration never drifts away from the
+     * ASPD_HOOK configuration value (the drift was the root cause of the
+     * buttons silently rendering nowhere after changing the display location).
+     * Idempotent and safe to call with $oldHook === $newHook.
+     *
+     * @param string $oldHook
+     * @param string $newHook
+     *
+     * @return bool
+     */
+    private function switchHook($oldHook, $newHook)
+    {
+        if ($oldHook === $newHook) {
+            return true;
+        }
+
+        $ok = true;
+        if ($oldHook !== '' && $this->isRegisteredInHook($oldHook)) {
+            $ok = $this->unregisterHook($oldHook) && $ok;
+        }
+        if (!$this->isRegisteredInHook($newHook)) {
+            $ok = $this->registerHook($newHook) && $ok;
         }
 
         return $ok;
@@ -178,7 +215,7 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
         // Hidden tab (no visible parent): managed from the module configuration page.
         $tab->id_parent = -1;
         foreach (Language::getLanguages(false) as $lang) {
-            $tab->name[$lang['id_lang']] = 'Simple PDF Instructions';
+            $tab->name[$lang['id_lang']] = 'Instrukcje PDF APLINE';
         }
 
         return (bool) $tab->add();
@@ -247,21 +284,26 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
 
     public function getContent()
     {
+        $this->context->controller->addCSS($this->getPathUri() . 'views/css/admin.css');
         $output = '';
 
         if (Tools::isSubmit('submitAspdConfig')) {
             $hook = (string) Tools::getValue(self::HOOK_KEY);
 
             if (!array_key_exists($hook, self::getAvailableHooks())) {
-                $output .= $this->displayError($this->trans('Invalid display hook selected.', [], 'Modules.Aplinesimplepdfinstructions.Admin'));
+                $output .= $this->displayError($this->trans('Wybrano nieprawidłowe miejsce wyświetlania.', [], 'Modules.Aplinesimplepdfinstructions.Admin'));
             } else {
+                $oldHook = (string) Configuration::get(self::HOOK_KEY);
+                if (!$this->switchHook($oldHook, $hook)) {
+                    $output .= $this->displayWarning($this->trans('Zapisano miejsce wyświetlania, ale nie udało się w pełni przełączyć hooka. Otwórz ponownie tę stronę. Jeśli przyciski nadal nie działają, wykonaj kopię danych i ponownie zainstaluj moduł.', [], 'Modules.Aplinesimplepdfinstructions.Admin'));
+                }
                 Configuration::updateValue(self::HOOK_KEY, $hook);
-                $output .= $this->displayConfirmation($this->trans('Settings updated.', [], 'Modules.Aplinesimplepdfinstructions.Admin'));
+                $output .= $this->displayConfirmation($this->trans('Zapisano ustawienia.', [], 'Modules.Aplinesimplepdfinstructions.Admin'));
             }
         }
 
         if (!$this->isUploadDirWritable()) {
-            $output .= $this->displayWarning($this->trans('The upload folder is not writable: %s. Icon uploads will fail until you fix its permissions (e.g. chmod 0775).', [$this->getUploadDir()], 'Modules.Aplinesimplepdfinstructions.Admin'));
+            $output .= $this->displayWarning($this->trans('Brak prawa zapisu w katalogu ikon: %s. Przesyłanie ikon wymaga poprawnych uprawnień (np. chmod 0775).', [$this->getUploadDir()], 'Modules.Aplinesimplepdfinstructions.Admin'));
         }
 
         $manageUrl = $this->context->link->getAdminLink(self::ADMIN_CONTROLLER);
@@ -287,19 +329,19 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
         $fields_form = [
             'form' => [
                 'legend' => [
-                    'title' => $this->trans('Display settings', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                    'title' => $this->trans('Ustawienia wyświetlania', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     'icon' => 'icon-cogs',
                 ],
                 'input' => [
                     [
                         'type' => 'select',
-                        'label' => $this->trans('Display location', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                        'label' => $this->trans('Miejsce wyświetlania', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                         'name' => self::HOOK_KEY,
                         'options' => ['query' => $hookOptions, 'id' => 'id', 'name' => 'name'],
-                        'desc' => $this->trans('You can also display the buttons anywhere with {widget name=\'apline_simple_pdf_instructions\'}.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
+                        'desc' => $this->trans('Możesz też osadzić przyciski w dowolnym miejscu przez {widget name=\'apline_simple_pdf_instructions\'}.', [], 'Modules.Aplinesimplepdfinstructions.Admin'),
                     ],
                 ],
-                'submit' => ['title' => $this->trans('Save', [], 'Admin.Actions')],
+                'submit' => ['class' => 'btn btn-primary btn-lg apline-btn-duzy pull-right', 'title' => $this->trans('Zapisz', [], 'Admin.Actions')],
             ],
         ];
 
@@ -333,7 +375,7 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
             .apline-credit a { font-weight: 600; }
         </style>
         <div class="apline-credit">
-            ' . $this->trans('Module created by', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '
+            ' . $this->trans('Autor modułu:', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '
             <a href="https://apline.pl" target="_blank" rel="noopener noreferrer">APLINE</a>
         </div>';
     }
@@ -347,8 +389,8 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
     {
         return '
         <div class="panel">
-            <h3>&#9749; ' . $this->trans('Like this module?', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</h3>
-            <p>' . $this->trans('Need custom PrestaShop development, performance optimization or integrations?', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</p>
+            <h3>&#9749; ' . $this->trans('Podoba Ci się ten moduł?', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</h3>
+            <p>' . $this->trans('Potrzebujesz rozwoju PrestaShop, optymalizacji wydajności lub integracji?', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</p>
             <a class="btn btn-default" href="https://apline.pl" target="_blank" rel="noopener noreferrer">&#8594; APLINE.PL</a>
         </div>';
     }
