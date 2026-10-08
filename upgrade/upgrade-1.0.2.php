@@ -15,9 +15,9 @@
  * the hook currently selected in ASPD_HOOK (falling back to the module's
  * default if the stored value is empty or invalid).
  *
- * @author    APLINE Arkadiusz Pielechowski
- * @copyright APLINE Arkadiusz Pielechowski
- * @license   Custom Attribution License v1.0 - see LICENSE.md
+ * @author    Arkadiusz Pielechowski
+ * @copyright Arkadiusz Pielechowski
+ * @license   MIT - see LICENSE.md
  */
 if (!defined('_PS_VERSION_')) {
     exit;

@@ -1,6 +1,6 @@
 {*
  * APLINE Simple PDF Instructions module for PrestaShop 9.
- * @author APLINE Arkadiusz Pielechowski
+ * @author Arkadiusz Pielechowski
  *}
 <div class="panel">
   <h3><i class="icon-file-pdf-o"></i> {l s='Instrukcje PDF APLINE' d='Modules.Aplinesimplepdfinstructions.Admin'}</h3>

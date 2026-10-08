@@ -9,9 +9,9 @@
  * native `ps_product_attachment`; this table only stores how to render
  * the button (icon, label, color, slot index).
  *
- * @author    APLINE Arkadiusz Pielechowski
- * @copyright APLINE Arkadiusz Pielechowski
- * @license   Custom Attribution License v1.0 - see LICENSE.md
+ * @author    Arkadiusz Pielechowski
+ * @copyright Arkadiusz Pielechowski
+ * @license   MIT - see LICENSE.md
  */
 if (!defined('_PS_VERSION_')) {
     exit;

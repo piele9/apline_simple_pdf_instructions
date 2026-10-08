@@ -6,9 +6,9 @@
  * a product-attachment slot. Reads native PrestaShop attachments — does
  * NOT manage PDF files itself.
  *
- * @author    APLINE Arkadiusz Pielechowski
- * @copyright APLINE Arkadiusz Pielechowski
- * @license   Custom Attribution License v1.0 - see LICENSE.md
+ * @author    Arkadiusz Pielechowski
+ * @copyright Arkadiusz Pielechowski
+ * @license   MIT - see LICENSE.md
  */
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -49,8 +49,8 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
     {
         $this->name = 'apline_simple_pdf_instructions';
         $this->tab = 'front_office_features';
-        $this->version = '1.1.0';
-        $this->author = 'APLINE Arkadiusz Pielechowski';
+        $this->version = '1.1.1';
+        $this->author = 'Arkadiusz Pielechowski';
         $this->need_instance = false;
         $this->bootstrap = true;
 
@@ -360,10 +360,9 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
     }
 
     /**
-     * APLINE attribution block. Required by the module license to stay visible
-     * on the configuration page with a working link to https://apline.pl.
-     * Rendered server-side as a standalone component (not CSS-only) so it
-     * cannot be trivially stripped.
+     * Author credit with a link to https://pielechowski.pl, shown on the
+     * configuration page. The module is MIT-licensed: the credit is kept by
+     * default, it is not a license requirement.
      *
      * @return string
      */
@@ -376,7 +375,7 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
         </style>
         <div class="apline-credit">
             ' . $this->trans('Autor modułu:', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '
-            <a href="https://apline.pl" target="_blank" rel="noopener noreferrer">APLINE</a>
+            <a href="https://pielechowski.pl" target="_blank" rel="noopener noreferrer">PIELECHOWSKI.PL</a>
         </div>';
     }
 
@@ -391,7 +390,7 @@ class apline_simple_pdf_instructions extends Module implements WidgetInterface
         <div class="panel">
             <h3>&#9749; ' . $this->trans('Podoba Ci się ten moduł?', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</h3>
             <p>' . $this->trans('Potrzebujesz rozwoju PrestaShop, optymalizacji wydajności lub integracji?', [], 'Modules.Aplinesimplepdfinstructions.Admin') . '</p>
-            <a class="btn btn-default" href="https://apline.pl" target="_blank" rel="noopener noreferrer">&#8594; APLINE.PL</a>
+            <a class="btn btn-default" href="https://pielechowski.pl" target="_blank" rel="noopener noreferrer">&#8594; PIELECHOWSKI.PL</a>
         </div>';
     }
 

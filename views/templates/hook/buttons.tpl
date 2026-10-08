@@ -1,6 +1,6 @@
 {*
  * APLINE Simple PDF Instructions module for PrestaShop 9.
- * @author APLINE Arkadiusz Pielechowski
+ * @author Arkadiusz Pielechowski
  *}
 {if $buttons|@count}
   <div class="apline-simple-pdf-instructions">
